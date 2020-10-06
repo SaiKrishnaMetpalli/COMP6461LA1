@@ -6,7 +6,7 @@ public class HttpLibrary {
 		cmd_Arguments=arguments;
 	}
 	
-	public void sendRequests() {
+	public void sendRequests() { 
 		switch (cmd_Arguments[0]) {
 	        case "help":
 	        	if(cmd_Arguments.length==1) {
