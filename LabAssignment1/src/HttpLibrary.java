@@ -1,7 +1,9 @@
+import java.util.HashMap;
 
 public class HttpLibrary {
 
 	private String[] cmd_Arguments;
+	
 	public HttpLibrary(String[] arguments) {
 		cmd_Arguments=arguments;
 	}
@@ -42,18 +44,69 @@ public class HttpLibrary {
 		                    System.out.println(post_Help_Txt);
 		                    break;
 		                default:
-		                    System.out.println(cmd_Arguments[1] + " command not found");
-		                    break;
+		                    System.out.println(cmd_Arguments[1] + " command not found");		                    
 			        	}		        		            
 		            break;
 		        case "get":
+		        	handleGetRequest();
 		        	break; 
 		        case "post":
 		        	break;
 		        default:
-		            System.out.println(cmd_Arguments[0] + " command not found");
-		            break;
+		            System.out.println(cmd_Arguments[0] + " command not found");		            
 		    }
 		}		
+	}	
+	
+	public void handleGetRequest() {
+		boolean is_Verbose=false;
+		boolean is_Headers=false;
+		boolean is_Proceed=true;
+		String message="";
+		String host="";
+		String path="/";
+		HashMap<String,String> header_List=new HashMap<String,String>();
+		
+		for(int i=1;i<=cmd_Arguments.length;i++) {
+			if(cmd_Arguments[i].equals("-v")) {
+				is_Verbose=true;
+			} else if(cmd_Arguments[i].equals("-h")) {
+				is_Headers=true;
+				i++;
+				if(cmd_Arguments[i].contains(":")) {
+					String[] headers=cmd_Arguments[i].split(":");
+					header_List.put(headers[0], headers[1]);
+				} else {
+					is_Proceed=false;
+					message="The headers are not in Key:Value pair";
+					break;
+				}
+			} else if(cmd_Arguments[i].contains("http")) {
+				 if(validateURL(cmd_Arguments[i])) {
+					 int index_path=cmd_Arguments[i].indexOf("/",7);
+					 if(index_path!=-1) {
+						 host = cmd_Arguments[i].substring(7, index_path);
+	                     path = cmd_Arguments[i].substring(index_path);
+					 } else {
+						 host = cmd_Arguments[i].substring(7, cmd_Arguments[i].length());
+					 }
+				 } else {
+					 is_Proceed=false;
+					 message="The URL is not correct";
+				 }
+			} else {
+				is_Proceed=false;
+				message="The get command format is not correct";
+			}			
+		}
+		if(is_Proceed) {
+			
+		} else {
+			System.out.println(message);
+		}
+	}
+
+	private boolean validateURL(String url) {		
+		return url.substring(0, 7).equals("http://");
 	}
 }
