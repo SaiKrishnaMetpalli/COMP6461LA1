@@ -4,7 +4,7 @@ public class httpc {
 		// TODO Auto-generated method stub
 		if(args.length!=0) {
 			HttpLibrary http_Lib=new HttpLibrary(args);
-			http_Lib.sendRequests();
+			http_Lib.handleCommand();
 		} else {
 			System.out.println("Invalid Command");
 		}

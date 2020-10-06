@@ -6,19 +6,21 @@ public class HttpLibrary {
 		cmd_Arguments=arguments;
 	}
 	
-	public void sendRequests() { 
-		switch (cmd_Arguments[0]) {
-	        case "help":
-	        	if(cmd_Arguments.length==1) {
-	        		String help_Text = "\n";
-	        		help_Text += "httpc is a curl-like application but supports HTTP protocol only.\n";
-	        		help_Text += "Usage: \n    httpc command [arguments]\nThe commands are:\n";
-	        		help_Text += "    get     executes a HTTP GET request and prints the response.\n";
-	        		help_Text += "    post    executes a HTTP POST request and prints the response.\n";
-	        		help_Text += "    help    prints this screen.\n\n";
-	        		help_Text += "Use \"httpc help [command]\" for more information about a command.\n";
-	                System.out.println(help_Text);
-	        	} else {
+	public void handleCommand() {
+		if(cmd_Arguments.length==1 && cmd_Arguments[0].equals("help")) {
+			String help_Text = "\n";
+    		help_Text += "httpc is a curl-like application but supports HTTP protocol only.\n";
+    		help_Text += "Usage: \n    httpc command [arguments]\nThe commands are:\n";
+    		help_Text += "    get     executes a HTTP GET request and prints the response.\n";
+    		help_Text += "    post    executes a HTTP POST request and prints the response.\n";
+    		help_Text += "    help    prints this screen.\n\n";
+    		help_Text += "Use \"httpc help [command]\" for more information about a command.\n";
+            System.out.println(help_Text);
+		} else if(cmd_Arguments.length==1) {
+			System.out.println("Invalid command");
+		} else {
+			switch (cmd_Arguments[0]) {
+		        case "help":		        	
 	        		switch (cmd_Arguments[1]) {
 		                case "get":
 		                    String get_Help_Text = "\n";
@@ -42,16 +44,16 @@ public class HttpLibrary {
 		                default:
 		                    System.out.println(cmd_Arguments[1] + " command not found");
 		                    break;
-		            }
-	        	}	            
-	            break;
-	        case "get":
-	        	break; 
-	        case "post":
-	        	break;
-	        default:
-	            System.out.println(cmd_Arguments[0] + " command not found");
-	            break;
-	    }
+			        	}		        		            
+		            break;
+		        case "get":
+		        	break; 
+		        case "post":
+		        	break;
+		        default:
+		            System.out.println(cmd_Arguments[0] + " command not found");
+		            break;
+		    }
+		}		
 	}
 }
