@@ -1,2 +1,0 @@
-{"Assignment_type": 2}
-{"Assignment_type": 3}

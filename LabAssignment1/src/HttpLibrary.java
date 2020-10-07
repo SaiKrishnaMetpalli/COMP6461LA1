@@ -100,12 +100,15 @@ public class HttpLibrary {
 					break;
 				} else if (cmd_Arguments[i].contains(":")) {
 					header_List.add(cmd_Arguments[i].toString().trim());
+					
 				} else {
 					is_Proceed = false;
 					is_Header_Data = false;
 					message = "\n==========The header: " + cmd_Arguments[i] + " is not in Key:Value pair ";
 					break;
 				}
+				
+				System.out.println("\nHeader Data: " + header_List);
 			} else if ((cmd_Arguments[i].contains("-d")) || (cmd_Arguments[i].contains("--d"))) {
 				if (is_contains_f) {
 					message = "\n==========The post command cannot have both -d and -f in it.";
@@ -120,8 +123,8 @@ public class HttpLibrary {
 					i++;
 					data = cmd_Arguments[i] + "\r\n";
 				}
-				System.out.println("\nPrint data: " + data);
-				System.out.println("\nHeader Data: " + header_List.get(0));
+				//System.out.println("\nPrint data: " + data);
+				
 
 			} else if ((cmd_Arguments[i].contains("-f")) || (cmd_Arguments[i].contains("--f"))) {
 				if (is_contains_d) {
@@ -215,7 +218,7 @@ public class HttpLibrary {
 			System.out.println("\n\n==========Command is VALID.=========\n\n");
 			System.out.println("\nOpening socket for communication...\n");
 
-			System.out.println("\n DATA: " + data);
+			//System.out.println("\n DATA: " + data);
 
 			try {
 				InetAddress addr = InetAddress.getByName(host);
