@@ -1,13 +1,13 @@
-import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class HttpLibrary {
 
@@ -17,7 +17,7 @@ public class HttpLibrary {
 		cmd_Arguments = arguments;
 	}
 
-	public void handleCommand() {
+	public void handleCommand() throws IOException {
 		if (cmd_Arguments.length == 1 && cmd_Arguments[0].equals("help")) {
 			String help_Text = "\n";
 			help_Text += "httpc is a curl-like application but supports HTTP protocol only.\n";
@@ -68,78 +68,206 @@ public class HttpLibrary {
 		}
 	}
 
-	private void handlePostRequest() {
+	private void handlePostRequest() throws IOException {
+//		for (int i = 1; i < cmd_Arguments.length; i++) {
+//			System.out.println("\n" + i + " : " + cmd_Arguments[i]);
+//		}
 		boolean is_Verbose = false;
-		boolean is_Headers = false;
+		boolean is_Header_Data = true;
 		boolean is_Proceed = true;
 		boolean is_contains_d = false;
 		boolean is_contains_f = false;
 		String message = "";
 		String host = "";
 		String path = "/";
-		String inlineData = "";
-		File filename = null;
-		HashMap<String, String> header_List = new HashMap<String, String>();
+		String data = "";
+		//ArrayList<String> data_in_file = new ArrayList<>();
+		String filename = "";
+		File file = null;
+		String url = "";
+		ArrayList<String> header_List = new ArrayList<String>();
 
-		for (int i = 1; i <= cmd_Arguments.length; i++) {
+		for (int i = 1; i < cmd_Arguments.length; i++) {
+
 			if (cmd_Arguments[i].equals("-v")) {
 				is_Verbose = true;
 			} else if (cmd_Arguments[i].equals("-h")) {
-				is_Headers = true;
+
 				i++;
-				if (cmd_Arguments[i].contains(":")) {
-					String[] headers = cmd_Arguments[i].split(":");
-					header_List.put(headers[0], headers[1]);
+
+				if (cmd_Arguments[i].contains("://")) {
+					is_Proceed = false;
+					is_Header_Data = false;
+					message = "\n==========The header is missing Key:Value pair ";
+					break;
+				} else if (cmd_Arguments[i].contains(":")) {
+
+					header_List.add(cmd_Arguments[i].toString().trim());
 				} else {
 					is_Proceed = false;
-					message = "The headers are not in Key:Value pair";
+					is_Header_Data = false;
+					message = "\n==========The header: " + cmd_Arguments[i] + " is not in Key:Value pair ";
 					break;
 				}
-			} else if (cmd_Arguments[i].contains("-d")) {
+			} else if ((cmd_Arguments[i].contains("-d")) || (cmd_Arguments[i].contains("--d"))) {
 				if (is_contains_f) {
-					message = "The post command cannot have both -d and -f in it.";
+					message = "\n==========The post command cannot have both -d and -f in it.";
+					is_Proceed = false;
+
+					break;
 				} else if (is_contains_d) {
-					message = "The post command cannot have -d command multiple times.";
+					message = "\n==========The post command cannot have -d command multiple times.";
+					is_Proceed = false;
+					break;
 				} else {
 					is_contains_d = true;
 					i++;
-					inlineData = cmd_Arguments[i].toString().trim();
+					data = cmd_Arguments[i] + "\r\n";
 
 				}
+				System.out.println("\nPrint data: " + data);
+				System.out.println("\nHeader Data: " + header_List.get(0));
 
-			} else if (cmd_Arguments[i].contains("-f")) {
+			} else if ((cmd_Arguments[i].contains("-f")) || (cmd_Arguments[i].contains("--f"))) {
 				if (is_contains_d) {
-					message = "The post command cannot have both -d and -f in it.";
+					message = "\n==========The post command cannot have both -d and -f in it.";
+					is_Proceed = false;
+					break;
 				} else if (is_contains_f) {
-					message = "The post command cannot have -f command multiple times.";
+					message = "\n==========The post command cannot have -f command multiple times.";
+					is_Proceed = false;
+					break;
 				} else {
 					is_contains_f = true;
 					i++;
-					filename = new File(cmd_Arguments[i]);
+					filename = cmd_Arguments[i].toString().trim();
+					file = new File(filename);
+					//ArrayList<String> file_content_lines = new ArrayList<>();
+
+					String line;
+
+					if (file.exists()) {
+						BufferedReader bReader = new BufferedReader(new FileReader(file));
+						try {
+							while ((line = bReader.readLine()) != null) {
+								data += line ;
+							}
+//							data += "Content-Length:" + data.length() + "\r\n";
+//							data += "Content-Type: text/plain" + "\r\n";
+                            
+//							data_in_file.add("Content-Disposition: form-data; name=file; filename=" + filename);
+//							data_in_file.add("Content-Type: text/plain");
+//							data_in_file.add("Content-Length:" + file_content_lines.size());
+//							data_in_file.add("\r\n");
+//							for(String s: file_content_lines) {
+//								
+//							}
+							//data += "Content-Disposition: form-data; nadme=file; filename=" + filename + "\r\n";
+							//data += "Content-Type: text/plain" + "\r\n";
+							//data += "Content-Length:" + data_in_file.length() + "\r\n";
+							//data += "\r\n";
+							//data += data_in_file + "\r\n";
+
+							//System.out.println("\n\n\n\nData: " + data_in_file);
+
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+						bReader.close();
+					} else {
+						is_Proceed = false;
+						message = "\n==========File does not exists!";
+						break;
+					}
 
 				}
 
 			}
 
 			else if (cmd_Arguments[i].contains("http")) {
-				if (validateURL(cmd_Arguments[i])) {
-					int index_path = cmd_Arguments[i].indexOf("/", 7);
+
+				if (cmd_Arguments[i].startsWith("\"")) {
+					url = cmd_Arguments[i].substring(1, cmd_Arguments[i].length() - 1);
+				} else {
+					url = cmd_Arguments[i];
+				}
+				if (validateURL(url)) {
+					int index_path = url.indexOf("/", 7);
 					if (index_path != -1) {
-						host = cmd_Arguments[i].substring(7, index_path);
-						path = cmd_Arguments[i].substring(index_path);
+						host = url.substring(7, index_path);
+						path = url.substring(index_path);
 					} else {
-						host = cmd_Arguments[i].substring(7, cmd_Arguments[i].length());
+						host = url.substring(7, cmd_Arguments[i].length());
 					}
 				} else {
 					is_Proceed = false;
-					message = "The URL is not correct";
+					message = "\n==========The URL provided is invalid";
 				}
 			} else {
 				is_Proceed = false;
-				message = "The get command format is not correct";
+
+				message = "\n==========The POST command format is not correct";
 			}
+
 		}
 		if (is_Proceed) {
+			System.out.println("\n\n==========Command is VALID.=========\n\n");
+			System.out.println("\nOpening socket for communication...\n");
+			
+			System.out.println("\n DATA: "+ data);
+
+			try {
+				InetAddress addr = InetAddress.getByName(host);
+				Socket socket = new Socket(addr, 80);
+				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				out.write("POST " + path + " HTTP/1.0\r\n");
+				out.write("Host:" + host + "\r\n");
+				out.write("User-Agent:Concordia-HTTP/1.0\r\n");
+
+				if (!header_List.isEmpty()) {
+					for (String header : header_List) {
+						out.write(header + "\r\n");
+					}
+				}
+				
+				//System.out.println("\n\nData String array list: \n "+data_in_file);
+				if (!(data.isEmpty())) {
+					
+					out.write("Content-Length: " + data.length() + "\r\n");
+					//out.flush();
+
+				}
+				out.write("\r\n");
+				out.write(data);
+				out.write("\r\n");
+				out.flush();
+
+				String line = in.readLine();
+				System.out.println();
+				while (line != null) {
+					if (is_Verbose) {
+						System.out.println(line);
+					} else {
+						if (!is_Header_Data) {
+							System.out.println(line);
+						} else {
+							if (line.equals("")) {
+								is_Header_Data = false;
+							}
+						}
+					}
+					line = in.readLine();
+				}
+
+				in.close();
+				out.close();
+				socket.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 
 		} else {
 			System.out.println(message);
@@ -148,95 +276,95 @@ public class HttpLibrary {
 	}
 
 	public void handleGetRequest() {
-		boolean is_Verbose=false;
-		boolean is_Headers=false;
-		boolean is_Proceed=true;
-		boolean is_Header_Data=true;
-		String message="";
-		String host="";
-		String path="/";
-		String url="";
-		
-		ArrayList<String> header_List=new ArrayList<String>();
-		
-		for(int i=1;i<cmd_Arguments.length;i++) {
-			if(cmd_Arguments[i].equals("-v")) {
-				is_Verbose=true;
-			} else if(cmd_Arguments[i].equals("-h")) {
-				is_Headers=true;
+		boolean is_Verbose = false;
+		boolean is_Headers = false;
+		boolean is_Proceed = true;
+		boolean is_Header_Data = true;
+		String message = "";
+		String host = "";
+		String path = "/";
+		String url = "";
+
+		ArrayList<String> header_List = new ArrayList<String>();
+
+		for (int i = 1; i < cmd_Arguments.length; i++) {
+			if (cmd_Arguments[i].equals("-v")) {
+				is_Verbose = true;
+			} else if (cmd_Arguments[i].equals("-h")) {
+				is_Headers = true;
 				i++;
-				if(cmd_Arguments[i].contains(":")) {
+				if (cmd_Arguments[i].contains(":")) {
 					header_List.add(cmd_Arguments[i]);
 				} else {
-					is_Proceed=false;
-					message="The header: "+cmd_Arguments[i]+" is not in Key:Value pair";
+					is_Proceed = false;
+					message = "The header: " + cmd_Arguments[i] + " is not in Key:Value pair";
 					break;
 				}
-			} else if(cmd_Arguments[i].contains("http")) {				
-				 if(cmd_Arguments[i].startsWith("\"")) {
-					 url=cmd_Arguments[i].substring(1,cmd_Arguments[i].length()-1);
-				 } else {
-					 url=cmd_Arguments[i];
-				 }				 
-				 if(validateURL(url)) {
-					 int index_path=url.indexOf("/",7);
-					 if(index_path!=-1) {
-						 host = url.substring(7, index_path);
-	                     path = url.substring(index_path);	                     
-					 } else {
-						 host = url.substring(7, cmd_Arguments[i].length());
-					 }
-				 } else {
-					 is_Proceed=false;
-					 message="The URL provided is invalid";
-				 }
+			} else if (cmd_Arguments[i].contains("http")) {
+				if (cmd_Arguments[i].startsWith("\"")) {
+					url = cmd_Arguments[i].substring(1, cmd_Arguments[i].length() - 1);
+				} else {
+					url = cmd_Arguments[i];
+				}
+				if (validateURL(url)) {
+					int index_path = url.indexOf("/", 7);
+					if (index_path != -1) {
+						host = url.substring(7, index_path);
+						path = url.substring(index_path);
+					} else {
+						host = url.substring(7, cmd_Arguments[i].length());
+					}
+				} else {
+					is_Proceed = false;
+					message = "The URL provided is invalid";
+				}
 			} else {
-				is_Proceed=false;
-				message="The get command format is invalid";
-			}			
+				is_Proceed = false;
+				message = "The get command format is invalid";
+			}
 		}
-		if(is_Proceed) {
+		if (is_Proceed) {
 			try {
 				InetAddress addr = InetAddress.getByName(host);
-			    Socket socket = new Socket(addr, 80);
-			    BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-			    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			    out.write("GET " + path + " HTTP/1.0\r\n");
-			    out.write("Host:"+host+"\r\n");
-			    out.write("User-Agent:Concordia-HTTP/1.0\r\n");
-			    
-			    if(!header_List.isEmpty()) {
-			    	for(String header:header_List) {
-			    		out.write(header+"\r\n");
-			    	}
-			    }
-			    out.write("\r\n");
-			    out.flush();
-			    
-			    String line=in.readLine();
-			    System.out.println();
-			    while(line!=null) {
-			    	if(is_Verbose) {
-			    		System.out.println(line);
-			    	} else {
-			    		if(!is_Header_Data) {
-			    			System.out.println(line);
-			    		} else {
-			    			if(line.equals("")) {
-			    				is_Header_Data=false;
-			    			}
-			    		}
-			    	}
-			    	line=in.readLine();
-			    }
-			    
-			    in.close();
-			    out.close();
-			    socket.close();
-			} catch(Exception ex) {
+				Socket socket = new Socket(addr, 80);
+				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				out.write("GET " + path + " HTTP/1.0\r\n");
+				out.write("Host:" + host + "\r\n");
+				out.write("User-Agent:Concordia-HTTP/1.0\r\n");
+
+				if (!header_List.isEmpty()) {
+					for (String header : header_List) {
+						out.write(header + "\r\n");
+					}
+				}
+				out.write("\r\n");
+				out.flush();
+
+				String line = in.readLine();
+				System.out.println();
+				while (line != null) {
+					if (is_Verbose) {
+						System.out.println(line);
+					} else {
+						if (!is_Header_Data) {
+							System.out.println(line);
+						} else {
+							if (line.equals("")) {
+								is_Header_Data = false;
+							}
+						}
+					}
+					line = in.readLine();
+				}
+
+				in.close();
+				out.close();
+				socket.close();
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-			
+
 		} else {
 			System.out.println(message);
 		}
