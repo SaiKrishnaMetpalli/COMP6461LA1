@@ -8,7 +8,7 @@ public class httpc {
 			HttpLibrary http_Lib = new HttpLibrary(args);
 			http_Lib.handleCommand();
 		} else {
-			System.out.println("Invalid Command");
+			System.out.println("\n==========Invalid Command");
 		}
 	}
 

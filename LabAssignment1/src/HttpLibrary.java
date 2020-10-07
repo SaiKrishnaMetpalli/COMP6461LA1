@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -28,7 +29,7 @@ public class HttpLibrary {
 			help_Text += "Use \"httpc help [command]\" for more information about a command.\n";
 			System.out.println(help_Text);
 		} else if (cmd_Arguments.length == 1) {
-			System.out.println("Invalid command");
+			System.out.println("\n==========Invalid command");
 		} else {
 			switch (cmd_Arguments[0]) {
 			case "help":
@@ -53,7 +54,7 @@ public class HttpLibrary {
 					System.out.println(post_Help_Txt);
 					break;
 				default:
-					System.out.println(cmd_Arguments[1] + " command not found");
+					System.out.println("\n=========="+cmd_Arguments[1] + " command not found");
 				}
 				break;
 			case "get":
@@ -63,28 +64,27 @@ public class HttpLibrary {
 				handlePostRequest();
 				break;
 			default:
-				System.out.println(cmd_Arguments[0] + " command not found");
+				System.out.println("\n=========="+cmd_Arguments[0] + " command not found");
 			}
 		}
 	}
 
 	private void handlePostRequest() throws IOException {
-//		for (int i = 1; i < cmd_Arguments.length; i++) {
-//			System.out.println("\n" + i + " : " + cmd_Arguments[i]);
-//		}
 		boolean is_Verbose = false;
 		boolean is_Header_Data = true;
 		boolean is_Proceed = true;
 		boolean is_contains_d = false;
 		boolean is_contains_f = false;
+		boolean is_Save_File = false;
 		String message = "";
 		String host = "";
 		String path = "/";
-		String data = "";
-		//ArrayList<String> data_in_file = new ArrayList<>();
+		String data = "";		
 		String filename = "";
+		String filename_Save = "";
 		File file = null;
 		String url = "";
+		String output_Data = "";
 		ArrayList<String> header_List = new ArrayList<String>();
 
 		for (int i = 1; i < cmd_Arguments.length; i++) {
@@ -92,16 +92,13 @@ public class HttpLibrary {
 			if (cmd_Arguments[i].equals("-v")) {
 				is_Verbose = true;
 			} else if (cmd_Arguments[i].equals("-h")) {
-
 				i++;
-
 				if (cmd_Arguments[i].contains("://")) {
 					is_Proceed = false;
 					is_Header_Data = false;
 					message = "\n==========The header is missing Key:Value pair ";
 					break;
 				} else if (cmd_Arguments[i].contains(":")) {
-
 					header_List.add(cmd_Arguments[i].toString().trim());
 				} else {
 					is_Proceed = false;
@@ -113,7 +110,6 @@ public class HttpLibrary {
 				if (is_contains_f) {
 					message = "\n==========The post command cannot have both -d and -f in it.";
 					is_Proceed = false;
-
 					break;
 				} else if (is_contains_d) {
 					message = "\n==========The post command cannot have -d command multiple times.";
@@ -123,7 +119,6 @@ public class HttpLibrary {
 					is_contains_d = true;
 					i++;
 					data = cmd_Arguments[i] + "\r\n";
-
 				}
 				System.out.println("\nPrint data: " + data);
 				System.out.println("\nHeader Data: " + header_List.get(0));
@@ -142,19 +137,16 @@ public class HttpLibrary {
 					i++;
 					filename = cmd_Arguments[i].toString().trim();
 					file = new File(filename);
-					//ArrayList<String> file_content_lines = new ArrayList<>();
-
 					String line;
-
 					if (file.exists()) {
 						BufferedReader bReader = new BufferedReader(new FileReader(file));
 						try {
 							while ((line = bReader.readLine()) != null) {
-								data += line ;
+								data += line;
 							}
 //							data += "Content-Length:" + data.length() + "\r\n";
 //							data += "Content-Type: text/plain" + "\r\n";
-                            
+
 //							data_in_file.add("Content-Disposition: form-data; name=file; filename=" + filename);
 //							data_in_file.add("Content-Type: text/plain");
 //							data_in_file.add("Content-Length:" + file_content_lines.size());
@@ -162,19 +154,19 @@ public class HttpLibrary {
 //							for(String s: file_content_lines) {
 //								
 //							}
-							//data += "Content-Disposition: form-data; nadme=file; filename=" + filename + "\r\n";
-							//data += "Content-Type: text/plain" + "\r\n";
-							//data += "Content-Length:" + data_in_file.length() + "\r\n";
-							//data += "\r\n";
-							//data += data_in_file + "\r\n";
+							// data += "Content-Disposition: form-data; nadme=file; filename=" + filename +
+							// "\r\n";
+							// data += "Content-Type: text/plain" + "\r\n";
+							// data += "Content-Length:" + data_in_file.length() + "\r\n";
+							// data += "\r\n";
+							// data += data_in_file + "\r\n";
 
-							//System.out.println("\n\n\n\nData: " + data_in_file);
+							// System.out.println("\n\n\n\nData: " + data_in_file);
 
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-
 						bReader.close();
 					} else {
 						is_Proceed = false;
@@ -184,10 +176,17 @@ public class HttpLibrary {
 
 				}
 
-			}
-
-			else if (cmd_Arguments[i].contains("http")) {
-
+			} else if (cmd_Arguments[i].contains("-o")) {
+				is_Save_File = true;
+				i++;
+				if (cmd_Arguments[i].endsWith(".txt")) {
+					filename_Save = cmd_Arguments[i];
+				} else {
+					is_Proceed = false;
+					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
+					break;
+				}
+			} else if (cmd_Arguments[i].contains("http")) {
 				if (cmd_Arguments[i].startsWith("\"")) {
 					url = cmd_Arguments[i].substring(1, cmd_Arguments[i].length() - 1);
 				} else {
@@ -210,13 +209,13 @@ public class HttpLibrary {
 
 				message = "\n==========The POST command format is not correct";
 			}
-
 		}
+		
 		if (is_Proceed) {
 			System.out.println("\n\n==========Command is VALID.=========\n\n");
 			System.out.println("\nOpening socket for communication...\n");
-			
-			System.out.println("\n DATA: "+ data);
+
+			System.out.println("\n DATA: " + data);
 
 			try {
 				InetAddress addr = InetAddress.getByName(host);
@@ -232,12 +231,12 @@ public class HttpLibrary {
 						out.write(header + "\r\n");
 					}
 				}
-				
-				//System.out.println("\n\nData String array list: \n "+data_in_file);
+
+				// System.out.println("\n\nData String array list: \n "+data_in_file);
 				if (!(data.isEmpty())) {
-					
+
 					out.write("Content-Length: " + data.length() + "\r\n");
-					//out.flush();
+					// out.flush();
 
 				}
 				out.write("\r\n");
@@ -249,10 +248,10 @@ public class HttpLibrary {
 				System.out.println();
 				while (line != null) {
 					if (is_Verbose) {
-						System.out.println(line);
+						output_Data += line + "\n";
 					} else {
 						if (!is_Header_Data) {
-							System.out.println(line);
+							output_Data += line + "\n";
 						} else {
 							if (line.equals("")) {
 								is_Header_Data = false;
@@ -261,7 +260,11 @@ public class HttpLibrary {
 					}
 					line = in.readLine();
 				}
-
+				if (is_Save_File) {
+					saveToFile(filename_Save,output_Data);
+				} else {
+					System.out.println(output_Data);
+				}
 				in.close();
 				out.close();
 				socket.close();
@@ -280,10 +283,13 @@ public class HttpLibrary {
 		boolean is_Headers = false;
 		boolean is_Proceed = true;
 		boolean is_Header_Data = true;
+		boolean is_Save_File = false;
 		String message = "";
 		String host = "";
 		String path = "/";
 		String url = "";
+		String filename_Save = "";
+		String output_Data = "";
 
 		ArrayList<String> header_List = new ArrayList<String>();
 
@@ -293,11 +299,25 @@ public class HttpLibrary {
 			} else if (cmd_Arguments[i].equals("-h")) {
 				is_Headers = true;
 				i++;
-				if (cmd_Arguments[i].contains(":")) {
+				if (cmd_Arguments[i].contains("://")) {
+					is_Proceed = false;
+					message = "\n==========The header is missing Key:Value pair";
+					break;
+				} else if (cmd_Arguments[i].contains(":")) {
 					header_List.add(cmd_Arguments[i]);
 				} else {
 					is_Proceed = false;
-					message = "The header: " + cmd_Arguments[i] + " is not in Key:Value pair";
+					message = "\n==========The header: " + cmd_Arguments[i] + " is not in Key:Value pair";
+					break;
+				}
+			} else if (cmd_Arguments[i].contains("-o")) {
+				is_Save_File = true;
+				i++;
+				if (cmd_Arguments[i].endsWith(".txt")) {
+					filename_Save = cmd_Arguments[i];
+				} else {
+					is_Proceed = false;
+					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
 					break;
 				}
 			} else if (cmd_Arguments[i].contains("http")) {
@@ -316,11 +336,13 @@ public class HttpLibrary {
 					}
 				} else {
 					is_Proceed = false;
-					message = "The URL provided is invalid";
+					message = "\n==========The URL provided is invalid";
+					break;
 				}
 			} else {
 				is_Proceed = false;
-				message = "The get command format is invalid";
+				message = "\n==========The get command format is invalid";
+				break;
 			}
 		}
 		if (is_Proceed) {
@@ -345,10 +367,10 @@ public class HttpLibrary {
 				System.out.println();
 				while (line != null) {
 					if (is_Verbose) {
-						System.out.println(line);
+						output_Data += line + "\n";
 					} else {
 						if (!is_Header_Data) {
-							System.out.println(line);
+							output_Data += line + "\n";
 						} else {
 							if (line.equals("")) {
 								is_Header_Data = false;
@@ -356,6 +378,11 @@ public class HttpLibrary {
 						}
 					}
 					line = in.readLine();
+				}
+				if (is_Save_File) {
+					saveToFile(filename_Save,output_Data);
+				} else {
+					System.out.println(output_Data);
 				}
 
 				in.close();
@@ -372,5 +399,14 @@ public class HttpLibrary {
 
 	private boolean validateURL(String url) {
 		return url.substring(0, 7).equals("http://");
+	}
+	
+	public void saveToFile(String filename_Save,String output_Data) throws IOException {
+		File f_Save = new File(filename_Save);
+		BufferedWriter bw_Save = new BufferedWriter(new FileWriter(f_Save));
+		f_Save.createNewFile();
+		bw_Save.write(output_Data);
+		bw_Save.close();
+		System.out.println("\n==========Saved to file: " + filename_Save);
 	}
 }
