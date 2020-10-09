@@ -86,7 +86,7 @@ public class HttpLibrary {
 		String url = "";
 		String output_Data = "";
 		ArrayList<String> header_List = new ArrayList<String>();
-		String boundry = "This_is_Yishi_Wang's_boundary_:D";
+		String boundry = "LA1";
 
 		for (int i = 1; i < cmd_Arguments.length; i++) {
 			if (cmd_Arguments[i].equals("-v")) {
@@ -134,13 +134,23 @@ public class HttpLibrary {
 					filename = cmd_Arguments[i].toString().trim();
 					file = new File(filename);
 					String line;
-					String linesInFile = "";
+					String file_Content="";
 					if (file.exists()) {
 						BufferedReader bReader = new BufferedReader(new FileReader(file));
 						try {
+							
 							while ((line = bReader.readLine()) != null) {
-								data += line;
+								file_Content += line;
 							}
+							
+							data += "--" + boundry + "\r\n";
+                            data += "Content-Disposition: form-data; name=\"file\"; filename=" + filename + "\r\n";
+                            data += "Content-Type: text/plain" + "\r\n";
+                            data += "Content-Length:" + file_Content.length() + "\r\n";
+                            data += "\r\n";
+                            data += file_Content + "\r\n";
+                            data += "--" + boundry + "--" + "\r\n";
+                            
 
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -194,28 +204,25 @@ public class HttpLibrary {
 				out.write("POST " + path + " HTTP/1.0\r\n");
 				out.write("Host:" + host + "\r\n");
 				out.write("User-Agent:Concordia-HTTP/1.0\r\n");
+				
+				if (is_contains_f) {
+					out.write("Content-Type: multipart/form-data; boundary=" + boundry + "\r\n");
+				}
 
 				if (!header_List.isEmpty()) {
 					for (String header : header_List) {
 						out.write(header + "\r\n");
 					}
-				}
+				}				
+				
 				if (!(data.isEmpty())) {
-					out.write("Content-Length: " + data.length() + "\r\n");
-
-				}
-
-				if (is_contains_f) {
-					// out.write("Content-Type: multipart/form-data;" + "\r\n");
-					//out.write("Content-Disposition: form-data; name=\"" + filename + "\"; filename=\"" + filename + "\"");
-					//out.write("Content-Type: multipart/form-data; charset=UTF-8" + "\r\n");
-				}
+					out.write("Content-Length: " + data.length() + "\r\n");					
+				}			
 
 				out.write("\r\n");
 				out.write(data);
 				out.write("\r\n");
 				out.flush();
-				System.out.println("\n\nThe written data is: " + data + "\n\n");
 
 				String line = in.readLine();
 				System.out.println();
@@ -394,7 +401,6 @@ public class HttpLibrary {
 		String line = in.readLine();
 
 		String output_Data = "";
-		System.out.println();
 		boolean is_Verbose = false;
 		boolean is_Header_Data = true;
 
