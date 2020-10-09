@@ -122,7 +122,7 @@ public class HttpLibrary {
 				} else {
 					is_contains_d = true;
 					i++;
-					data = cmd_Arguments[i] + "\r\n";
+					data = cmd_Arguments[i];
 				}
 				// System.out.println("\nPrint data: " + data);
 
