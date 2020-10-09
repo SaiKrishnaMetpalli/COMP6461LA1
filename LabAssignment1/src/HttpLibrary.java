@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class HttpLibrary {
@@ -54,7 +55,7 @@ public class HttpLibrary {
 					System.out.println(post_Help_Txt);
 					break;
 				default:
-					System.out.println("\n=========="+cmd_Arguments[1] + " command not found");
+					System.out.println("\n==========" + cmd_Arguments[1] + " command not found");
 				}
 				break;
 			case "get":
@@ -64,7 +65,7 @@ public class HttpLibrary {
 				handlePostRequest();
 				break;
 			default:
-				System.out.println("\n=========="+cmd_Arguments[0] + " command not found");
+				System.out.println("\n==========" + cmd_Arguments[0] + " command not found");
 			}
 		}
 	}
@@ -79,7 +80,7 @@ public class HttpLibrary {
 		String message = "";
 		String host = "";
 		String path = "/";
-		String data = "";		
+		String data = "";
 		String filename = "";
 		String filename_Save = "";
 		File file = null;
@@ -100,14 +101,14 @@ public class HttpLibrary {
 					break;
 				} else if (cmd_Arguments[i].contains(":")) {
 					header_List.add(cmd_Arguments[i].toString().trim());
-					
+
 				} else {
 					is_Proceed = false;
 					is_Header_Data = false;
 					message = "\n==========The header: " + cmd_Arguments[i] + " is not in Key:Value pair ";
 					break;
 				}
-				
+
 				System.out.println("\nHeader Data: " + header_List);
 			} else if ((cmd_Arguments[i].contains("-d")) || (cmd_Arguments[i].contains("--d"))) {
 				if (is_contains_f) {
@@ -123,8 +124,7 @@ public class HttpLibrary {
 					i++;
 					data = cmd_Arguments[i] + "\r\n";
 				}
-				//System.out.println("\nPrint data: " + data);
-				
+				// System.out.println("\nPrint data: " + data);
 
 			} else if ((cmd_Arguments[i].contains("-f")) || (cmd_Arguments[i].contains("--f"))) {
 				if (is_contains_d) {
@@ -213,12 +213,12 @@ public class HttpLibrary {
 				message = "\n==========The POST command format is not correct";
 			}
 		}
-		
+
 		if (is_Proceed) {
-			System.out.println("\n\n==========Command is VALID.=========\n\n");
+			System.out.println("\n\n==========Command is VALID=========\n\n");
 			System.out.println("\nOpening socket for communication...\n");
 
-			//System.out.println("\n DATA: " + data);
+			// System.out.println("\n DATA: " + data);
 
 			try {
 				InetAddress addr = InetAddress.getByName(host);
@@ -264,7 +264,7 @@ public class HttpLibrary {
 					line = in.readLine();
 				}
 				if (is_Save_File) {
-					saveToFile(filename_Save,output_Data);
+					saveToFile(filename_Save, output_Data);
 				} else {
 					System.out.println(output_Data);
 				}
@@ -281,7 +281,7 @@ public class HttpLibrary {
 
 	}
 
-	public void handleGetRequest() {
+	public void handleGetRequest() throws IOException {
 		boolean is_Verbose = false;
 		boolean is_Headers = false;
 		boolean is_Proceed = true;
@@ -293,6 +293,7 @@ public class HttpLibrary {
 		String url = "";
 		String filename_Save = "";
 		String output_Data = "";
+		boolean is_redirect = false;
 
 		ArrayList<String> header_List = new ArrayList<String>();
 
@@ -348,12 +349,16 @@ public class HttpLibrary {
 				break;
 			}
 		}
+
+		String url_to_redirect = "";
+
 		if (is_Proceed) {
 			try {
 				InetAddress addr = InetAddress.getByName(host);
 				Socket socket = new Socket(addr, 80);
 				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
 				out.write("GET " + path + " HTTP/1.0\r\n");
 				out.write("Host:" + host + "\r\n");
 				out.write("User-Agent:Concordia-HTTP/1.0\r\n");
@@ -367,6 +372,7 @@ public class HttpLibrary {
 				out.flush();
 
 				String line = in.readLine();
+
 				System.out.println();
 				while (line != null) {
 					if (is_Verbose) {
@@ -380,10 +386,21 @@ public class HttpLibrary {
 							}
 						}
 					}
+
+					if (line != null && line.toLowerCase().contains("location")) {
+						is_redirect = true;
+						url_to_redirect = line.split("://")[1];
+						if (url_to_redirect.contains("/")) {
+							url_to_redirect = url_to_redirect.replace("/", "");
+						}
+					}
 					line = in.readLine();
+
 				}
+				// System.out.println("\n\n=====URL TO REDIRECT: " + url_to_redirect);
+
 				if (is_Save_File) {
-					saveToFile(filename_Save,output_Data);
+					saveToFile(filename_Save, output_Data);
 				} else {
 					System.out.println(output_Data);
 				}
@@ -398,13 +415,81 @@ public class HttpLibrary {
 		} else {
 			System.out.println(message);
 		}
+
+		if (is_redirect) {
+			redirectRequest(url_to_redirect);
+		}
+
+	}
+
+	private String checkIfRedirect(String line) {
+		// System.out.println("\nRESPONSE: " + line + "\n\n");
+		String url_to_redirect = "";
+
+		for (String l : line.split("\n")) {
+			if (l != null && l.toLowerCase().contains("location")) {
+				url_to_redirect = l.split("://")[1];
+			}
+		}
+		return url_to_redirect;
+	}
+
+	private void redirectRequest(String url_for_redirection) throws IOException {
+		
+		InetAddress addr = InetAddress.getByName(url_for_redirection);
+		InetAddress.getByName(url_for_redirection);
+		Socket socket = new Socket(addr, 80);
+		BufferedWriter out = new BufferedWriter(new
+
+		OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+		BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		System.out.println("\nRedirecting to: " + url_for_redirection + "...");
+
+		out.write("GET " + "/" + " HTTP/1.0\r\n");
+		out.write("Host:" + url_for_redirection + "\r\n");
+		out.write("User-Agent:Concordia-HTTP/1.0\r\n");
+
+		out.write("\r\n");
+		out.flush();
+
+		String line = in.readLine();
+
+		String output_Data = "";
+		System.out.println();
+		boolean is_Verbose = false;
+		boolean is_Header_Data = true;
+
+		while (line != null) {
+			if (is_Verbose) {
+				output_Data += line + "\n";
+			} else {
+				if (!is_Header_Data) {
+					output_Data += line + "\n";
+				} else {
+					if (line.equals("")) {
+						is_Header_Data = false;
+					}
+				}
+			}
+			line = in.readLine();
+			// checkIfRedirect(line);
+
+			// System.out.println("\nreceived data: " + line);
+		}
+
+		System.out.println(output_Data);
+
+		in.close();
+		out.close();
+		socket.close();
+
 	}
 
 	private boolean validateURL(String url) {
 		return url.substring(0, 7).equals("http://");
 	}
-	
-	public void saveToFile(String filename_Save,String output_Data) throws IOException {
+
+	public void saveToFile(String filename_Save, String output_Data) throws IOException {
 		File f_Save = new File(filename_Save);
 		BufferedWriter bw_Save = new BufferedWriter(new FileWriter(f_Save));
 		f_Save.createNewFile();
