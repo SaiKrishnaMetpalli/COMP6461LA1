@@ -103,8 +103,6 @@ public class HttpLibrary {
 					message = "\n==========The header: " + cmd_Arguments[i] + " is not in Key:Value pair ";
 					break;
 				}
-
-				System.out.println("\nHeader Data: " + header_List);
 			} else if ((cmd_Arguments[i].contains("-d")) || (cmd_Arguments[i].contains("--d"))) {
 				if (is_contains_f) {
 					message = "\n==========The post command cannot have both -d and -f in it.";
