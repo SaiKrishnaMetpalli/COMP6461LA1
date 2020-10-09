@@ -161,12 +161,8 @@ public class HttpLibrary {
 					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
 					break;
 				}
-			} else if (cmd_Arguments[i].contains("http")) {
-				if (cmd_Arguments[i].startsWith("\"")) {
-					url = cmd_Arguments[i].substring(1, cmd_Arguments[i].length() - 1);
-				} else {
-					url = cmd_Arguments[i];
-				}
+			} else if (cmd_Arguments[i].contains("http")) {				
+				url = cmd_Arguments[i];			
 				if (validateURL(url)) {
 					int index_path = url.indexOf("/", 7);
 					if (index_path != -1) {
@@ -280,12 +276,8 @@ public class HttpLibrary {
 					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
 					break;
 				}
-			} else if (cmd_Arguments[i].contains("http")) {
-				if (cmd_Arguments[i].startsWith("\"")) {
-					url = cmd_Arguments[i].substring(1, cmd_Arguments[i].length() - 1);
-				} else {
-					url = cmd_Arguments[i];
-				}
+			} else if (cmd_Arguments[i].contains("http")) {				
+				url = cmd_Arguments[i];				
 				if (validateURL(url)) {
 					int index_path = url.indexOf("/", 7);
 					if (index_path != -1) {
