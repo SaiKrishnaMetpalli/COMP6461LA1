@@ -86,6 +86,8 @@ public class HttpLibrary {
 		String url = "";
 		String output_Data = "";
 		ArrayList<String> header_List = new ArrayList<String>();
+		String boundry = "This_is_Yishi_Wang's_boundary_:D";
+
 		for (int i = 1; i < cmd_Arguments.length; i++) {
 			if (cmd_Arguments[i].equals("-v")) {
 				is_Verbose = true;
@@ -132,6 +134,7 @@ public class HttpLibrary {
 					filename = cmd_Arguments[i].toString().trim();
 					file = new File(filename);
 					String line;
+					String linesInFile = "";
 					if (file.exists()) {
 						BufferedReader bReader = new BufferedReader(new FileReader(file));
 						try {
@@ -161,8 +164,8 @@ public class HttpLibrary {
 					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
 					break;
 				}
-			} else if (cmd_Arguments[i].contains("http")) {				
-				url = cmd_Arguments[i];			
+			} else if (cmd_Arguments[i].contains("http")) {
+				url = cmd_Arguments[i];
 				if (validateURL(url)) {
 					int index_path = url.indexOf("/", 7);
 					if (index_path != -1) {
@@ -181,6 +184,7 @@ public class HttpLibrary {
 				message = "\n==========The POST command format is not correct";
 			}
 		}
+
 		if (is_Proceed) {
 			try {
 				InetAddress addr = InetAddress.getByName(host);
@@ -190,6 +194,7 @@ public class HttpLibrary {
 				out.write("POST " + path + " HTTP/1.0\r\n");
 				out.write("Host:" + host + "\r\n");
 				out.write("User-Agent:Concordia-HTTP/1.0\r\n");
+
 				if (!header_List.isEmpty()) {
 					for (String header : header_List) {
 						out.write(header + "\r\n");
@@ -199,10 +204,19 @@ public class HttpLibrary {
 					out.write("Content-Length: " + data.length() + "\r\n");
 
 				}
+
+				if (is_contains_f) {
+					// out.write("Content-Type: multipart/form-data;" + "\r\n");
+					//out.write("Content-Disposition: form-data; name=\"" + filename + "\"; filename=\"" + filename + "\"");
+					//out.write("Content-Type: multipart/form-data; charset=UTF-8" + "\r\n");
+				}
+
 				out.write("\r\n");
 				out.write(data);
 				out.write("\r\n");
 				out.flush();
+				System.out.println("\n\nThe written data is: " + data + "\n\n");
+
 				String line = in.readLine();
 				System.out.println();
 				while (line != null) {
@@ -238,7 +252,7 @@ public class HttpLibrary {
 	}
 
 	public void handleGetRequest() throws IOException {
-		boolean is_Verbose = false;		
+		boolean is_Verbose = false;
 		boolean is_Proceed = true;
 		boolean is_Header_Data = true;
 		boolean is_Save_File = false;
@@ -253,7 +267,7 @@ public class HttpLibrary {
 		for (int i = 1; i < cmd_Arguments.length; i++) {
 			if (cmd_Arguments[i].equals("-v")) {
 				is_Verbose = true;
-			} else if (cmd_Arguments[i].equals("-h")) {				
+			} else if (cmd_Arguments[i].equals("-h")) {
 				i++;
 				if (cmd_Arguments[i].contains("://")) {
 					is_Proceed = false;
@@ -276,8 +290,8 @@ public class HttpLibrary {
 					message = "\n==========The given filename: " + cmd_Arguments[i] + " should end with .txt";
 					break;
 				}
-			} else if (cmd_Arguments[i].contains("http")) {				
-				url = cmd_Arguments[i];				
+			} else if (cmd_Arguments[i].contains("http")) {
+				url = cmd_Arguments[i];
 				if (validateURL(url)) {
 					int index_path = url.indexOf("/", 7);
 					if (index_path != -1) {
@@ -403,7 +417,7 @@ public class HttpLibrary {
 		in.close();
 		out.close();
 		socket.close();
-		
+
 	}
 
 	private boolean validateURL(String url) {
