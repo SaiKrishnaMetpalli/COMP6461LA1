@@ -397,13 +397,13 @@ public class HttpLibrary {
 				}
 			}
 			line = in.readLine();
-
-			System.out.println(output_Data);
-
-			in.close();
-			out.close();
-			socket.close();
 		}
+		System.out.println(output_Data);
+
+		in.close();
+		out.close();
+		socket.close();
+		
 	}
 
 	private boolean validateURL(String url) {
