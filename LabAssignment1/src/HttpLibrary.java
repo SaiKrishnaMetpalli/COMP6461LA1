@@ -79,6 +79,7 @@ public class HttpLibrary {
 		String message = "";
 		String host = "";
 		String path = "/";
+		int port_No=80;
 		String data = "";
 		String filename = "";
 		String filename_Save = "";
@@ -177,16 +178,21 @@ public class HttpLibrary {
 			} else if (cmd_Arguments[i].contains("http")) {
 				url = cmd_Arguments[i];
 				if (validateURL(url)) {
-					int index_path = url.indexOf("/", 7);
-					if (index_path != -1) {
-						host = url.substring(7, index_path);
-						path = url.substring(index_path);
-					} else {
-						host = url.substring(7, cmd_Arguments[i].length());
+					int index_port=url.indexOf(":", 7);
+					int index_path = url.indexOf("/", 7);					
+					host = "localhost";
+					try {
+						port_No=Integer.parseInt(url.substring(index_port+1,index_path));
+					} catch(Exception ex) {
+						is_Proceed = false;
+						message = "\n==========Port Number is not valid";
+						break;						
 					}
+					path = url.substring(index_path);					
 				} else {
 					is_Proceed = false;
 					message = "\n==========The URL provided is invalid";
+					break;
 				}
 			} else {
 				is_Proceed = false;
@@ -267,6 +273,7 @@ public class HttpLibrary {
 		String host = "";
 		String path = "/";
 		String url = "";
+		int port_No=80;
 		String filename_Save = "";
 		String output_Data = "";
 		boolean is_redirect = false;
@@ -300,13 +307,17 @@ public class HttpLibrary {
 			} else if (cmd_Arguments[i].contains("http")) {
 				url = cmd_Arguments[i];
 				if (validateURL(url)) {
-					int index_path = url.indexOf("/", 7);
-					if (index_path != -1) {
-						host = url.substring(7, index_path);
-						path = url.substring(index_path);
-					} else {
-						host = url.substring(7, cmd_Arguments[i].length());
+					int index_port=url.indexOf(":", 7);
+					int index_path = url.indexOf("/", 7);					
+					host = "localhost";
+					try {
+						port_No=Integer.parseInt(url.substring(index_port+1,index_path));
+					} catch(Exception ex) {
+						is_Proceed = false;
+						message = "\n==========Port Number is not valid";
+						break;
 					}
+					path = url.substring(index_path);					
 				} else {
 					is_Proceed = false;
 					message = "\n==========The URL provided is invalid";
@@ -322,7 +333,7 @@ public class HttpLibrary {
 		if (is_Proceed) {
 			try {
 				InetAddress addr = InetAddress.getByName(host);
-				Socket socket = new Socket(addr, 80);
+				Socket socket = new Socket(addr, port_No);
 				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				out.write("GET " + path + " HTTP/1.0\r\n");
@@ -427,7 +438,7 @@ public class HttpLibrary {
 	}
 
 	private boolean validateURL(String url) {
-		return url.substring(0, 7).equals("http://");
+		return url.substring(0, 16).equals("http://localhost");
 	}
 
 	public void saveToFile(String filename_Save, String output_Data) throws IOException {
