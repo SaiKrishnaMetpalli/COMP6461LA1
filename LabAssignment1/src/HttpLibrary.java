@@ -76,6 +76,7 @@ public class HttpLibrary {
 		boolean is_contains_d = false;
 		boolean is_contains_f = false;
 		boolean is_Save_File = false;
+		boolean is_Overwrite = false;
 		String message = "";
 		String host = "";
 		String path = "/";
@@ -194,6 +195,13 @@ public class HttpLibrary {
 					message = "\n==========The URL provided is invalid";
 					break;
 				}
+			} else if ((cmd_Arguments[i].contains("-ow"))) {
+				i++;
+				if(cmd_Arguments[i].contains("true")) {
+					is_Overwrite=true;
+				} else {
+					is_Overwrite=false;
+				}
 			} else {
 				is_Proceed = false;
 
@@ -204,7 +212,7 @@ public class HttpLibrary {
 		if (is_Proceed) {
 			try {
 				InetAddress addr = InetAddress.getByName(host);
-				Socket socket = new Socket(addr, 80);
+				Socket socket = new Socket(addr, port_No);
 				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				out.write("POST " + path + " HTTP/1.0\r\n");
@@ -223,10 +231,12 @@ public class HttpLibrary {
 				
 				if (!(data.isEmpty())) {
 					out.write("Content-Length: " + data.length() + "\r\n");					
-				}			
-
-				out.write("\r\n");
-				out.write(data);
+				}
+				
+				if(is_Overwrite) {
+					out.write("Overwrite: true\r\n");
+				}
+				out.write(data+"\r\n");
 				out.write("\r\n");
 				out.flush();
 
