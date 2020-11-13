@@ -195,13 +195,13 @@ public class HttpLibrary {
 					message = "\n==========The URL provided is invalid";
 					break;
 				}
-			} else if ((cmd_Arguments[i].contains("-ow"))) {
-				i++;
-				if(cmd_Arguments[i].contains("true")) {
+			} else if ((cmd_Arguments[i].contains("-r"))) {
+				i++;				
+				if(cmd_Arguments[i].equals("true")) {
 					is_Overwrite=true;
 				} else {
 					is_Overwrite=false;
-				}
+				}				
 			} else {
 				is_Proceed = false;
 
